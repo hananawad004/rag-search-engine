@@ -3,7 +3,7 @@ import pickle
 import math
 
 from collections import Counter
-from lib.search_utils import load_movies,tokenize_text
+from lib.search_utils import load_movies,tokenize_text,tokenize_term
 
 class InvertedIndex:
     def __init__(self):
@@ -39,6 +39,13 @@ class InvertedIndex:
         idf = self.get_idf(term)
 
         return tf * idf
+
+    def get_bm25_idf(self, term: str) -> float:
+        N=len(self.docmap)
+        df=len(self.get_documents(term))
+        return math.log((N-df+.5)/(df+.5)+1)
+
+
 
     def build(self):
         movies = load_movies()
@@ -80,7 +87,13 @@ def build_command():
         # docs = inverted_index.get_documents("merida")
         #
         # print(f"First document for token 'merida' = {docs[0]}")
+def bm25_idf_command(term: str) -> float:
+        inverted_index = InvertedIndex()
+        inverted_index.load()
 
+        token = tokenize_term(term)
+
+        return inverted_index.get_bm25_idf(token)
 
 def keyword_search(query: str, inverted_index: InvertedIndex) -> list:
     results = []
