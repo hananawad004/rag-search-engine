@@ -4,17 +4,22 @@ import math
 
 from collections import Counter
 from lib.search_utils import load_movies,tokenize_text,tokenize_term
+from lib.constants import *
 
+CACHE_DIR = "cache"
 class InvertedIndex:
+
     def __init__(self):
         self.index = {}
         self.docmap={}
         self.term_frequencies = {}
-
+        self.doc.lengths={}
+        self.doc_lengths_path = os.path.join(CACHE_DIR, "doc_lengths.pkl")
 
     def __add_document(self,doc_id,text):
         tokens = tokenize_text(text)
 
+        self.doc_lengths[doc_id] = len(tokens)
         self.term_frequencies.setdefault(doc_id, Counter())
 
         for token in tokens:
@@ -24,6 +29,10 @@ class InvertedIndex:
 
     def get_documents(self, term):
         return sorted(self.index.get(term, set()))
+
+    def __get_avg_doc_length(self) -> float:
+        
+
 
 
     def get_tf(self,doc_id, term):
@@ -45,7 +54,10 @@ class InvertedIndex:
         df=len(self.get_documents(term))
         return math.log((N-df+.5)/(df+.5)+1)
 
-
+    def get_bm25_tf(self, doc_id, term, k1=BM25_K1):
+        tf = self.get_tf(doc_id, term)
+        bm25_tf=(tf * (k1 + 1)) / (tf + k1)
+        return bm25_tf
 
     def build(self):
         movies = load_movies()
@@ -70,7 +82,8 @@ class InvertedIndex:
             pickle.dump(self.docmap, file)
         with open("cache/term_frequencies.pkl", "wb") as file:
             pickle.dump(self.term_frequencies, file)
-
+        with open("cache/doc_lengths.pkl", "wb") as file:
+            pickle.dump(self.doc_lengths, file)
     def load(self):
         with open("cache/index.pkl", "rb") as file:
             self.index = pickle.load(file)
@@ -78,7 +91,8 @@ class InvertedIndex:
             self.docmap = pickle.load(file)
         with open("cache/term_frequencies.pkl", "rb") as file:
             self.term_frequencies = pickle.load(file)
-
+        with open("cache/doc_lengths.pkl", "rb") as file:
+            self.doc_lengths = pickle.load(file)
 def build_command():
         inverted_index = InvertedIndex()
         inverted_index.build()
@@ -94,6 +108,12 @@ def bm25_idf_command(term: str) -> float:
         token = tokenize_term(term)
 
         return inverted_index.get_bm25_idf(token)
+
+def bm25_tf_command(doc_id:int,term: str,k1:float=BM25_K1) -> float:
+        inverted_index = InvertedIndex()
+        inverted_index.load()
+        token=tokenize_term(term)
+        return inverted_index.get_bm25_tf(doc_id,token,k1)
 
 def keyword_search(query: str, inverted_index: InvertedIndex) -> list:
     results = []

@@ -6,10 +6,11 @@ from lib.keyword_search import (
     keyword_search,
     build_command,
     bm25_idf_command,
+    bm25_tf_command
 )
 
 from lib.search_utils import tokenize_term
-
+from lib.constants import BM25_K1
 
 def load_index() -> InvertedIndex:
     inverted_index = InvertedIndex()
@@ -86,7 +87,14 @@ def main() -> None:
         type=str,
         help="Term to get BM25 IDF score for"
     )
-
+    bm25_tf_parser = subparsers.add_parser(
+        "bm25tf", help="Get BM25 TF score for a given document ID and term"
+    )
+    bm25_tf_parser.add_argument("doc_id", type=int, help="Document ID")
+    bm25_tf_parser.add_argument("term", type=str, help="Term to get BM25 TF score for")
+    bm25_tf_parser.add_argument(
+        "k1", type=float, nargs="?", default=BM25_K1, help="Tunable BM25 K1 parameter"
+    )
     # Build command
     subparsers.add_parser(
         "build",
@@ -143,6 +151,16 @@ def main() -> None:
                 sys.exit(1)
 
             print(f"BM25 IDF score of '{args.term}': {bm25idf:.2f}")
+        case "bm25tf":
+            try:
+                bm25tf = bm25_tf_command(
+                    args.doc_id,
+                    args.term,
+                    args.k1
+                )
+                print(f"BM25 TF score of '{args.term}' in document '{args.doc_id}': {bm25tf:.2f}")
+            except FileNotFoundError:
+               print("Error: Index files not found. Please build the index first.")
 
         case "build":
             build_command()
