@@ -98,6 +98,22 @@ def main() -> None:
     bm25_tf_parser.add_argument(
         "b", type=float, nargs="?", default=BM25_B, help="Tunable BM25 b parameter"
     )
+    bm25search_parser = subparsers.add_parser(
+        "bm25search",
+        help="Search movies using full BM25 scoring"
+    )
+
+    bm25search_parser.add_argument(
+        "query",
+        type=str,
+        help="Search query"
+    )
+
+    bm25search_parser.add_argument(
+        "--limit",
+        type=int,
+        default=5
+    )
     # Build command
     subparsers.add_parser(
         "build",
@@ -165,6 +181,18 @@ def main() -> None:
                 print(f"BM25 TF score of '{args.term}' in document '{args.doc_id}': {bm25tf:.2f}")
             except FileNotFoundError:
                print("Error: Index files not found. Please build the index first.")
+        case "bm25search":
+            inverted_index = load_index()
+
+            results = inverted_index.bm25_search(
+                args.query,
+                args.limit
+            )
+
+            for i, (doc_id, score, movie) in enumerate(results, start=1):
+                print(
+                    f"{i}. ({doc_id}) {movie['title']} - Score: {score:.2f}"
+                )
 
         case "build":
             build_command()

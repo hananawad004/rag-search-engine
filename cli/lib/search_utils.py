@@ -17,7 +17,7 @@ def tokenize(text: str) -> list:
 
 def load_stopwords() -> list:
     with open("data/stopwords.txt") as file:
-        return file.read().split()
+        return tokenize(file.read())
 
 
 STOPWORDS = load_stopwords()
