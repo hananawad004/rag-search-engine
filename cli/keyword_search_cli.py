@@ -10,7 +10,7 @@ from lib.keyword_search import (
 )
 
 from lib.search_utils import tokenize_term
-from lib.constants import BM25_K1
+from lib.constants import BM25_K1,BM25_B
 
 def load_index() -> InvertedIndex:
     inverted_index = InvertedIndex()
@@ -95,6 +95,9 @@ def main() -> None:
     bm25_tf_parser.add_argument(
         "k1", type=float, nargs="?", default=BM25_K1, help="Tunable BM25 K1 parameter"
     )
+    bm25_tf_parser.add_argument(
+        "b", type=float, nargs="?", default=BM25_B, help="Tunable BM25 b parameter"
+    )
     # Build command
     subparsers.add_parser(
         "build",
@@ -156,7 +159,8 @@ def main() -> None:
                 bm25tf = bm25_tf_command(
                     args.doc_id,
                     args.term,
-                    args.k1
+                    args.k1,
+                    args.b
                 )
                 print(f"BM25 TF score of '{args.term}' in document '{args.doc_id}': {bm25tf:.2f}")
             except FileNotFoundError:
