@@ -1,4 +1,3 @@
-
 # RAG Search Engine
 
 A movie search engine built with Python that explores different information retrieval techniques, starting with traditional keyword-based search and progressing to semantic search using embeddings.
@@ -9,18 +8,14 @@ This project is developed step by step, implementing the concepts and techniques
 
 The project explores different approaches to searching and retrieving relevant movie information:
 
-- **Keyword Search:** Finding documents based on matching words.
 - **Text Preprocessing:** Preparing text to improve keyword matching.
 - **TF-IDF:** Ranking documents based on the importance of query terms.
+- **Keyword Search:** Finding documents based on matching words.
 - **Semantic Search:** Finding relevant movies based on meaning rather than exact keyword matches.
 
 ---
 
-## 1. Keyword Search
-
-Implemented a keyword-based search system that retrieves movies by matching query terms against document content.
-
-## 2. Text Preprocessing
+## 1. Text Preprocessing
 
 Applied text preprocessing techniques to normalize text and improve keyword matching.
 
@@ -31,11 +26,15 @@ These techniques include:
 - Stop-word removal
 - Stemming
 
-## 3. TF-IDF
+## 2. TF-IDF
 
 Implemented TF-IDF (Term Frequency–Inverse Document Frequency) to measure the importance of a term within a document relative to the entire dataset.
 
 This helps rank search results based on term importance rather than simply counting matching words.
+
+## 3. Keyword Search
+
+Implemented a keyword-based search system that retrieves movies by matching query terms against document content.
 
 ---
 
@@ -45,7 +44,7 @@ Semantic search retrieves documents based on their meaning and context, even whe
 
 Unlike keyword search, which relies on matching terms, semantic search uses embedding models to represent text as numerical vectors.
 
-## 4.1 Embedding Models
+## 4.1. Embedding Model
 
 Used the `all-MiniLM-L6-v2` model from Sentence Transformers to convert text into numerical representations called embeddings.
 
@@ -59,7 +58,15 @@ model = SentenceTransformer("all-MiniLM-L6-v2")
 
 The model was selected for its ability to generate meaningful sentence embeddings while remaining relatively lightweight and efficient.
 
-## 4.2 Generating Text Embeddings
+Each generated embedding contains 384 dimensions.
+
+### Verify the Embedding Model
+
+The `verify` command checks that the embedding model loads correctly.
+
+![Verify Embedding Model](docs/images/verify.png)
+
+## 4.2. Generating Text Embeddings
 
 Implemented `generate_embedding()` to convert a given text into an embedding vector.
 
@@ -69,11 +76,9 @@ embedding = self.model.encode([text])[0]
 
 The method also validates the input to prevent generating embeddings for empty text.
 
-Each generated embedding contains 384 dimensions.
-
 ![Generate Text Embedding](docs/images/Generate%20Text%20Embedding.png)
 
-## 4.3 Generating Movie Embeddings
+## 4.3. Generating Movie Embeddings
 
 Implemented `build_embeddings()` to generate embeddings for the entire movie dataset.
 
@@ -95,7 +100,7 @@ The generated embeddings represent the semantic content of the movies and are us
 
 ![Build Movie Embeddings](docs/images/Build%20Movie%20Embeddings.png)
 
-## 4.4 Saving and Loading Embeddings
+## 4.4. Saving and Loading Embeddings
 
 Generating embeddings for the entire dataset is computationally expensive, so the results are saved to disk using NumPy.
 
@@ -116,7 +121,7 @@ The dataset contains 5,000 movies, represented by 5,000 embedding vectors, each 
 
 ![Load Cached Embeddings](docs/images/Load%20Cached%20Embeddings.png)
 
-## 4.5 Query Embeddings
+## 4.5. Query Embeddings
 
 Search queries must also be converted into embeddings before they can be compared with movie embeddings.
 
@@ -126,7 +131,7 @@ A single query produces a one-dimensional vector with a shape of `(384,)`, repre
 
 ![Query Embedding](docs/images/embed-query.png)
 
-## 4.6 Vector Operations
+## 4.6. Vector Operations
 
 Vector operations are used to compare and measure relationships between embeddings.
 
@@ -155,7 +160,7 @@ return dot_product / (norm1 * norm2)
 
 A higher cosine similarity score indicates that the two vectors point in a more similar direction.
 
-## 4.7 Semantic Search Implementation
+## 4.7. Semantic Search Implementation
 
 Implemented the `search()` method to retrieve movies based on their semantic similarity to a query.
 
@@ -176,7 +181,7 @@ Each result contains:
 
 ![Semantic Search Results](docs/images/semantic-search.png)
 
-## 4.8 Locality-Sensitive Hashing (LSH)
+## 4.8. Locality-Sensitive Hashing (LSH)
 
 Locality-Sensitive Hashing (LSH) is a technique used to speed up similarity searches in large datasets.
 
@@ -188,7 +193,7 @@ LSH provides a trade-off between search speed and recall. It can reduce the numb
 
 It is useful when search speed is more important than retrieving every possible similar result.
 
-## 4.9 Command-Line Interface
+## 4.9. Command-Line Interface
 
 Added CLI commands to interact with the semantic search functionality.
 
@@ -223,11 +228,10 @@ uv run cli/semantic_search_cli.py search "space adventure" --limit 3
 ```
 
 
-
 ## Technologies Used
 
 - Python
 - NumPy
 - Sentence Transformers
 - `all-MiniLM-L6-v2`
-- UV
+- uv
