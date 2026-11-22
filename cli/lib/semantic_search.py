@@ -3,6 +3,16 @@ import  os
 import json
 from sentence_transformers import SentenceTransformer
 
+def cosine_similarity(vec1: np.ndarray, vec2: np.ndarray) -> float:
+    dot_product = np.dot(vec1, vec2)
+    norm1 = np.linalg.norm(vec1)
+    norm2 = np.linalg.norm(vec2)
+
+    if norm1 == 0 or norm2 == 0:
+        return 0.0
+
+    return dot_product / (norm1 * norm2)
+
 class SemanticSearch:
     def __init__(self):
         self.model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -35,6 +45,26 @@ class SemanticSearch:
            if len(self.embeddings)==len(documents):
              return self.embeddings
         return self.build_embeddings(documents)
+
+    def search(self, query:str, limit:int):
+        if self.embeddings is None:
+            raise ValueError("No embeddings loaded. Call `load_or_create_embeddings` first.")
+        query_embedding = self.generate_embedding(query)
+        results=[]
+        for document,embedding in zip(self.documents,self.embeddings):
+            score = cosine_similarity(query_embedding, embedding)
+            results.append((score, document))
+
+        results.sort(key=lambda x: x[0], reverse=True)
+        return [
+            {
+                "score": score,
+                "title": document["title"],
+                "description": document["description"],
+            }
+            for score, document in results[:limit]
+        ]
+
 def verify_model():
     semantic_search = SemanticSearch()
 
@@ -58,3 +88,22 @@ def embed_text(text:str):
     print(f"Text: {text}")
     print(f"First 3 dimensions: {embedding[:3]}")
     print(f"Dimensions: {embedding.shape[0]}")
+
+def embed_query_text(query:str):
+    semantic_search = SemanticSearch()
+    embedding = semantic_search.generate_embedding(query)
+    print(f"Query: {query}")
+    print(f"First 3 dimensions: {embedding[:3]}")
+    print(f"Shape: {embedding.shape}")
+
+def semantic_search(query:str, limit:int=5):
+    semantic_search = SemanticSearch()
+    with open("data/movies.json", "r",encoding="utf-8") as f:
+        documents = json.load(f)["movies"]
+    semantic_search.load_or_create_embeddings(documents)
+    results=semantic_search.search(query, limit)
+
+    for i,result in enumerate(results,start=1):
+        print(f"{i}. {result['title']} (score: {result['score']:.4f})")
+        print(f"  {result['description'][:200]}...")
+        print()
