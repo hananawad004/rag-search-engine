@@ -26,6 +26,7 @@ def main() -> None:
     chunk_parser = subparsers.add_parser("chunk")
     chunk_parser.add_argument("text", type=str)
     chunk_parser.add_argument("--chunk-size", type=int, default=200)
+    chunk_parser.add_argument("--overlap", type=int, default=0)
     args = parser.parse_args()
     match args.command:
         case 'verify':
@@ -40,8 +41,8 @@ def main() -> None:
             semantic_search(args.query, args.limit)
 
         case 'chunk':
-           chunks= chunk_text(args.text, args.chunk_size)
-           print(f"Chunking{len(args.text)} characters")
+           chunks= chunk_text(args.text, args.chunk_size, args.overlap)
+           print(f"Chunking {len(args.text)} characters")
            for i ,chunk in enumerate(chunks,start=1):
                print(f"{i}. {chunk}")
         case _:
