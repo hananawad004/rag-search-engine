@@ -1,6 +1,6 @@
 import argparse
 from lib.semantic_search import (verify_model,embed_text,verify_embeddings,embed_query_text,SemanticSearch,
-                                 semantic_search,chunk_text)
+                                 semantic_search,chunk_text,semantic_chunk_text)
 parser = argparse.ArgumentParser()
 
 def main() -> None:
@@ -27,6 +27,12 @@ def main() -> None:
     chunk_parser.add_argument("text", type=str)
     chunk_parser.add_argument("--chunk-size", type=int, default=200)
     chunk_parser.add_argument("--overlap", type=int, default=0)
+
+    semantic_chunk_parser = subparsers.add_parser("semantic-chunk")
+    semantic_chunk_parser.add_argument("text", type=str)
+    semantic_chunk_parser.add_argument("--max-chunk-size", type=int, default=4)
+    semantic_chunk_parser.add_argument("--overlap", type=int, default=0)
+
     args = parser.parse_args()
     match args.command:
         case 'verify':
@@ -45,6 +51,11 @@ def main() -> None:
            print(f"Chunking {len(args.text)} characters")
            for i ,chunk in enumerate(chunks,start=1):
                print(f"{i}. {chunk}")
+        case 'semantic-chunk':
+            chunks= semantic_chunk_text(args.text, args.max_chunk_size, args.overlap)
+            print(f"Semantically chunking {len(args.text)} characters")
+            for i ,chunk in enumerate(chunks,start=1):
+                print(f"{i}. {chunk}")
         case _:
             parser.print_help()
 if __name__ == "__main__":

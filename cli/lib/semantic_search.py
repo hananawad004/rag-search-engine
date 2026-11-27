@@ -1,6 +1,7 @@
 import numpy as np
 import  os
 import json
+import re
 from sentence_transformers import SentenceTransformer
 
 def cosine_similarity(vec1: np.ndarray, vec2: np.ndarray) -> float:
@@ -117,4 +118,14 @@ def chunk_text(text:str,chunk_size:int=200,overlap:int=0):
 
         start+=chunk_size-overlap
 
+    return chunks
+
+
+def semantic_chunk_text(text:str,max_chunk_size:int=4,overlap:int=0):
+    sentences=re.split((r"(?<=[.!?])\s+"),text.strip())
+    chunks=[]
+    start=0
+    while start<len(sentences):
+        chunks.append(" ".join(sentences[start:start+max_chunk_size]))
+        start+=max_chunk_size-overlap
     return chunks
