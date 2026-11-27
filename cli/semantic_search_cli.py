@@ -1,6 +1,8 @@
 import argparse
+import json
 from lib.semantic_search import (verify_model,embed_text,verify_embeddings,embed_query_text,SemanticSearch,
-                                 semantic_search,chunk_text,semantic_chunk_text)
+                                 ChunkedSemanticSearch
+                                 ,semantic_search,chunk_text,semantic_chunk_text)
 parser = argparse.ArgumentParser()
 
 def main() -> None:
@@ -33,6 +35,10 @@ def main() -> None:
     semantic_chunk_parser.add_argument("--max-chunk-size", type=int, default=4)
     semantic_chunk_parser.add_argument("--overlap", type=int, default=0)
 
+    subparsers.add_parser(
+        "embed-chunks",
+        help="Generate embeddings for document chunks"
+    )
     args = parser.parse_args()
     match args.command:
         case 'verify':
@@ -56,6 +62,13 @@ def main() -> None:
             print(f"Semantically chunking {len(args.text)} characters")
             for i ,chunk in enumerate(chunks,start=1):
                 print(f"{i}. {chunk}")
+        case 'embed-chunks':
+            with open("data/movies.json","r") as f:
+                documents = json.load(f)["movies"]
+                search=ChunkedSemanticSearch()
+                embeddings = search.load_or_create_chunk_embeddings(documents)
+                print(f"Generated {len(embeddings)} chunked embeddings")
+
         case _:
             parser.print_help()
 if __name__ == "__main__":
