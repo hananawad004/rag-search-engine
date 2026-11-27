@@ -31,6 +31,7 @@ class SemanticSearch:
 
     def build_embeddings(self, documents):
         self.documents=documents
+
         for document in documents:
             self.document_map[document['id']] = document
         texts=[f"{doc['title']}: {doc['description']}" for doc in documents]
@@ -80,7 +81,7 @@ class ChunkedSemanticSearch(SemanticSearch):
             doc['id']: doc for doc in documents
         }
         all_chunks=[]
-        chunk_metadata = list[ChunkMetadata]=[]
+        chunk_metadata : list[ChunkMetadata]=[]
         for movie_idx, doc in enumerate(self.documents):
             description = doc["description"]
             if not description or not description.strip():
@@ -116,7 +117,36 @@ class ChunkedSemanticSearch(SemanticSearch):
             return self.chunk_embeddings
         return self.build_chunk_embeddings(documents)
 
+    def search_chunks(self, query: str, limit: int = 10):
+        if self.chunk_embeddings is None:
+            raise ValueError("No chunk embeddings loaded. Call load_or_create_chunk_embeddings first.")
+        query_embedding = self.generate_embedding(query)
+        chunk_scores=[]
+        for chunk_embedding,metadata in zip(self.chunk_embeddings,self.chunk_metadata):
+            score = cosine_similarity(query_embedding, chunk_embedding)
+            chunk_scores.append({
+             "chunk_idx": metadata["chunk_idx"],
+             "movie_idx":metadata["movie_idx"],
+             "score": score,
+            })
+        movie_scores={}
+        for chunk_score in chunk_scores:
+            movie_idx = chunk_score["movie_idx"]
+            score = chunk_score["score"]
+            if movie_idx not in movie_scores or score > movie_scores[movie_idx]:
+                movie_scores[movie_idx] = score
+        sorted_movie_scores = sorted(movie_scores.items(), key=lambda x: x[1], reverse=True)
 
+        Results=[]
+        for movie_idx, score in sorted_movie_scores[:limit]:
+            doc = self.documents[movie_idx]
+            Results.append({
+            "id": doc["id"],
+            "title": doc["title"],
+            "document": doc["description"][:100],
+            "score": round(score, 3)
+            })
+        return Results
 def verify_model():
     semantic_search = SemanticSearch()
 

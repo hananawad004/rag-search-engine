@@ -3,6 +3,7 @@ import json
 from lib.semantic_search import (verify_model,embed_text,verify_embeddings,embed_query_text,SemanticSearch,
                                  ChunkedSemanticSearch
                                  ,semantic_search,chunk_text,semantic_chunk_text)
+from lib.search_utils import *
 parser = argparse.ArgumentParser()
 
 def main() -> None:
@@ -39,6 +40,14 @@ def main() -> None:
         "embed-chunks",
         help="Generate embeddings for document chunks"
     )
+
+    search_chunked_parser = subparsers.add_parser(
+        "search-chunked",
+        help="Search using chunk embeddings"
+    )
+
+    search_chunked_parser.add_argument("query", type=str)
+    search_chunked_parser.add_argument("--limit", type=int, default=5)
     args = parser.parse_args()
     match args.command:
         case 'verify':
@@ -68,7 +77,17 @@ def main() -> None:
                 search=ChunkedSemanticSearch()
                 embeddings = search.load_or_create_chunk_embeddings(documents)
                 print(f"Generated {len(embeddings)} chunked embeddings")
+        case "search-chunked":
+            documents = load_movies()
 
+            search = ChunkedSemanticSearch()
+            search.load_or_create_chunk_embeddings(documents)
+
+            results = search.search_chunks(args.query, args.limit)
+
+            for i, result in enumerate(results, 1):
+                print(f"\n{i}. {result['title']} (score: {result['score']:.4f})")
+                print(f"   {result['document']}...")
         case _:
             parser.print_help()
 if __name__ == "__main__":
