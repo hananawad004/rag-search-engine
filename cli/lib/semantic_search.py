@@ -203,11 +203,19 @@ def chunk_text(text:str,chunk_size:int=200,overlap:int=0):
 
 
 def semantic_chunk_text(text:str,max_chunk_size:int=4,overlap:int=0):
-    sentences=re.split((r"(?<=[.!?])\s+"),text.strip())
+    text = text.strip()
+    if not text:
+        return []
+    sentences = re.split(r"(?<=[.!?])\s+", text)
+    if len(sentences) == 1 and not sentences[0].endswith((".", "!", "?")):
+        sentences = [text]
+    sentences = [sentence.strip() for sentence in sentences]
     chunks=[]
     start=0
-    while start<len(sentences):
-        chunks.append(" ".join(sentences[start:start+max_chunk_size]))
-        start+=max_chunk_size-overlap
+    while start < len(sentences):
+        chunk_sentences = sentences[start:start + max_chunk_size]
+        chunk = " ".join(sentence for sentence in chunk_sentences if sentence)
+        if chunk:
+            chunks.append(chunk)
+        start += max_chunk_size - overlap
     return chunks
-
